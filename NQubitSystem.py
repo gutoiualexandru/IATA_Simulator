@@ -159,6 +159,15 @@ class NQubitSystem:
         
         self.apply_gate_new(full_matrix)
 
+    def apply_cnot_chain(self, cnot_list):
+        """
+        Apply a list of CNOT gates to the quantum state.
+        
+        :param cnot_list: List of (control_qubits, target_qubit) tuples.
+        """
+        for controls, target in cnot_list:
+            self.multi_controlled_cnot(controls, target)
+
     def apply_full_gate(self, idx, gate_name, qubits_affected, single_gate, system_gate, noise=False):
         self.state = np.dot(system_gate, self.state)
 
