@@ -3,9 +3,6 @@ import numpy as np
 from constants import gates_map
 from Gate import Gate
 from pytket import Circuit
-# from pytket.backends import Simulator
-#from convert_circuit import convert_IATA_to_qiskit, convert_IATA_to_tket, convert_IATA_to_cirq, run_qiskit_circuit, run_cirq_circuit_on_qiskit
-#from qiskit import QuantumCircuit
 from pytket.circuit.display import render_circuit_jupyter
 import matplotlib.pyplot as plt
 import cirq
@@ -105,13 +102,16 @@ def after_error_shor(nr_qubits, quantum_system, first_qubit_value):
     gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
     quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
     # 6th CNOT gate
+    #target_qubit = 0
+    #control_qubit = [3, 6]
+    #starting_qubit = 0
+    #gate_name = "CNOT10"
+    #control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
+    #gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
+    #quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
+    control_qubits = [3, 6]
     target_qubit = 0
-    control_qubit = [3, 6]
-    starting_qubit = 0
-    gate_name = "CNOT10"
-    control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-    gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-    quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
+    quantum_system.multi_controlled_cnot(control_qubits, target_qubit)
     return quantum_system
 
 

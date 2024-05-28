@@ -132,6 +132,33 @@ class NQubitSystem:
         if random.random() < p:
             self.apply_Z_gate(target, False)
 
+    def apply_gate_new(self, gate_matrix):
+        self.state = gate_matrix @ self.state
+        assert self.is_valid_state()
+
+    def multi_controlled_cnot(self, control_qubits, target_qubit):
+        """
+        Apply a multi-controlled CNOT gate to the quantum state.
+        
+        :param control_qubits: List of control qubit indices.
+        :param target_qubit: The index of the target qubit.
+        """
+        size = 2 ** self.n_qubits
+        full_matrix = np.eye(size, dtype=complex)
+        
+        for i in range(size):
+            binary_i = f'{i:0{self.n_qubits}b}'
+            control_state = all(binary_i[q] == '1' for q in control_qubits)
+            
+            if control_state:
+                target_state = list(binary_i)
+                target_state[target_qubit] = '1' if target_state[target_qubit] == '0' else '0'
+                j = int(''.join(target_state), 2)
+                full_matrix[i, i], full_matrix[i, j] = 0, 1
+                full_matrix[j, j], full_matrix[j, i] = 0, 1
+        
+        self.apply_gate_new(full_matrix)
+
     def apply_full_gate(self, idx, gate_name, qubits_affected, single_gate, system_gate, noise=False):
         self.state = np.dot(system_gate, self.state)
 
