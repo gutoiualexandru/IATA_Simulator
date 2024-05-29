@@ -5,4 +5,4 @@ def preprocess(circuit, q):
     circuit.h(q[0])
 
 
-simulate_Shor(0.1, preprocess)
+simulate_Shor(0.5)

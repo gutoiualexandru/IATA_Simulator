@@ -27,28 +27,26 @@ def simulate_Shor(error_prob=0.1, preprocess=nul_process):
 
     backend = Aer.get_backend('qasm_simulator')
 
-    q = QuantumRegister(1, 'q')
-    c = ClassicalRegister(1, 'c')
+    # q = QuantumRegister(1, 'q')
+    # c = ClassicalRegister(1, 'c')
 
-    circuit = QuantumCircuit(q, c)
+    # circuit = QuantumCircuit(q, c)
+    # preprocess(circuit, q)
+    # circuit.h(q[0])
+    # circuit.barrier(q)
+    # apply_random_errors(circuit, q, error_prob)
+    # circuit.h(q[0])
+    # circuit.barrier(q)
 
-    circuit.h(q[0])
-    circuit.barrier(q)
-    apply_random_errors(circuit, q, error_prob)
+    # circuit.measure(q[0], c[0])
+    # job = execute(circuit, backend, shots=1000)
+    # job_monitor(job)
 
-    circuit.h(q[0])
-    circuit.barrier(q)
+    # counts = job.result().get_counts()
 
-    circuit.measure(q[0], c[0])
-
-    job = execute(circuit, backend, shots=1000)
-    job_monitor(job)
-
-    counts = job.result().get_counts()
-
-    print("\n Uncorrected bit flip and phase error")
-    print("--------------------------------------")
-    print(counts)
+    # print("\n Uncorrected bit flip and phase error")
+    # print("--------------------------------------")
+    # print(counts)
 
     ##### Shor code starts here ########
     q = QuantumRegister(9, 'q')
