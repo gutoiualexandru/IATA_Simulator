@@ -11,6 +11,11 @@ from collections import Counter
 import backend as back
 import random
 
+
+def nul_function(quantum_system):
+    print("no preprocess")
+
+
 def print_nonzero_states(L, tol=1e-10):
     for i in range(len(L)):
         if abs(L[i].real) > tol or abs(L[i].imag) > tol:
@@ -18,31 +23,23 @@ def print_nonzero_states(L, tol=1e-10):
             value_imag_bin = format(int(L[i].imag), 'b')
             value_bin = f"{value_real_bin} + {value_imag_bin}j"
             index_bin = format(i, 'b')
-            print(f"Index: {index_bin}, Value: {value_bin}")
+            print(f"State: {index_bin}")
 
 
-def before_error_shor(nr_qubits, quantum_system, first_qubit_value):
+def before_error_shor(nr_qubits, quantum_system, first_qubit_value, preprocess0=nul_function):
+
     list_qubits = [first_qubit_value]
     for i in range(nr_qubits-1):
         list_qubits.append(0)
     quantum_system.initialize_state(list_qubits)
     print_nonzero_states(quantum_system.state)
     # First CNOT applied
-    target_qubit = 3
-    control_qubit = [0]
-    starting_qubit = 0
-    gate_name = "CNOT"
-    control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-    gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-    quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
-    # Second CNOT applied
-    target_qubit = 6
-    control_qubit = [0]
-    starting_qubit = 0
-    gate_name = "CNOT"
-    control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-    gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-    quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
+    cnot_list = [
+        ([0], 3),
+        ([0], 6)
+    ]
+    preprocess0(quantum_system)
+    quantum_system.apply_cnot_chain(cnot_list)
     # Apply H gates on qubits 0, 3, 6
     quantum_system.apply_H_gate(0)
     quantum_system.apply_H_gate(3)
@@ -52,74 +49,45 @@ def before_error_shor(nr_qubits, quantum_system, first_qubit_value):
     quantum_system.apply_CNOT_gate(3)
     quantum_system.apply_CNOT_gate(6)
     # Apply 4th CNOT gates
-    target_qubit_list = [2, 5, 8]
-    control_qubit_list = [[0], [3], [6]]
-    starting_qubit = 0
-    gate_name = "CNOT"
-    for i in range(len(target_qubit_list)):
-        target_qubit = target_qubit_list[i]
-        control_qubit = control_qubit_list[i]
-        control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-        gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-        quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
+    cnot_list = [
+        ([0], 2),
+        ([3], 5),
+        ([6], 8)
+    ]
+    quantum_system.apply_cnot_chain(cnot_list)
     return quantum_system
-    
-def after_error_shor(nr_qubits, quantum_system, first_qubit_value):
-    #First CNOT gates applied
+
+
+def after_error_shor(quantum_system):
+    # First CNOT gates applied
     quantum_system.apply_CNOT_gate(0)
     quantum_system.apply_CNOT_gate(3)
     quantum_system.apply_CNOT_gate(6)
     # 2nd CNOT gates applied
-    target_qubit_list = [2, 5, 8]
-    control_qubit_list = [[0], [3], [6]]
-    starting_qubit = 0
-    gate_name = "CNOT"
-    for i in range(len(target_qubit_list)):
-        target_qubit = target_qubit_list[i]
-        control_qubit = control_qubit_list[i]
-        control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-        gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-        quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
-    #Double control gates
+    cnot_list = [
+        ([0], 2),
+        ([3], 5),
+        ([6], 8)
+    ]
+    quantum_system.apply_cnot_chain(cnot_list)
+    # Double control gates
     target_qubit_list = [0, 3, 6]
     control_qubit_list = [[1, 2], [4, 5], [7, 8]]
-    starting_qubit = 0
-    gate_name = "CNOT10"
     for i in range(len(target_qubit_list)):
         target_qubit = target_qubit_list[i]
         control_qubit = control_qubit_list[i]
-        #control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-        #gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-        #quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
         quantum_system.multi_controlled_cnot(control_qubit, target_qubit)
-    #The H gates on qubits 0, 3, 6
+    # The H gates on qubits 0, 3, 6
     quantum_system.apply_H_gate(0)
     quantum_system.apply_H_gate(3)
     quantum_system.apply_H_gate(6)
     # The 4th CNOT gate
-    target_qubit = 3
-    control_qubit = [0]
-    starting_qubit = 0
-    gate_name = "CNOT"
-    control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-    gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-    quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
-    # 5th CNOT applied
-    target_qubit = 6
-    control_qubit = [0]
-    starting_qubit = 0
-    gate_name = "CNOT"
-    control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-    gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-    quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
+    cnot_list = [
+        ([0], 3),
+        ([0], 6)
+    ]
+    quantum_system.apply_cnot_chain(cnot_list)
     # 6th CNOT gate
-    #target_qubit = 0
-    #control_qubit = [3, 6]
-    #starting_qubit = 0
-    #gate_name = "CNOT10"
-    #control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-    #gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-    #quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
     control_qubits = [3, 6]
     target_qubit = 0
     quantum_system.multi_controlled_cnot(control_qubits, target_qubit)
@@ -138,25 +106,30 @@ def introduce_noise(p, quantum_system):
     return quantum_system, bec
 
 
-quantum_system = NQubitSystem(n_qubits = 9)
-#list_qubits = [1]
-#for i in range(8):
-#    list_qubits.append(0)
-#quantum_system.initialize_state(list_qubits)
-#target_qubit = 3
-#control_qubit = [0]
-## starting_qubit = np.min([target_qubit,np.min(control_qubit)])
-#starting_qubit = 0
-#gate_name = "CNOT"
-#control_gate_name = f"Controlled-{gate_name}_Cq{control_qubit}_Tq{target_qubit}"
-#gate = quantum_system.control_gate(control_qubits = control_qubit, target_qubit = target_qubit, gate_matrix = gates_map[gate_name][0], name=control_gate_name)
-#quantum_system.apply_gate(gate, starting_qubit = starting_qubit)
-#quantum_system.print_state()
-quantum_system = before_error_shor(9, quantum_system, 1)
-quantum_system, bec = introduce_noise(1, quantum_system)
-print("Was an error introduced: {}".format(bec))
-quantum_system = after_error_shor(9, quantum_system, 1)
-print_nonzero_states(quantum_system.state)
-a, b = quantum_system.produce_specific_measurement(0)
-print(a)
-print(b)
+def complete_circuit(first_qubit, p, preprocess0=nul_function):
+    quantum_system = NQubitSystem(n_qubits=9)
+    quantum_system = before_error_shor(
+        9, quantum_system, first_qubit, preprocess0)
+    quantum_system, bec = introduce_noise(p, quantum_system)
+    print("Was an error introduced: {}".format(bec))
+    quantum_system = after_error_shor(quantum_system)
+    print_nonzero_states(quantum_system.state)
+    a, b = quantum_system.produce_specific_measurement(0)
+    return [a, b]
+
+
+def simulate_circuit(shots, first_qubit=0, p=0.1, preprocess0=nul_function):
+    out = [0]*2
+    for i in range(shots):
+        a, b = complete_circuit(first_qubit, p, preprocess0)
+        out[0] += a
+        out[1] += b
+    plt.figure(figsize=(6, 4))
+    plt.bar(['State 0', 'State 1'], out, color=['blue', 'orange'])
+    plt.xlabel('State')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of States')
+    plt.show()
+
+
+# simulate_circuit(10, 0, 0.1, preprocess)
